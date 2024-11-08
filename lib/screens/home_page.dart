@@ -12,7 +12,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String selectedGender = '';
+  String selectedGender = 'male';
   double height = 156;
   int weight = 60;
 
