@@ -9,37 +9,38 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v3       # Check out the repository code
+        uses: actions/checkout@v3  # Check out the repository code
 
-      - name: Extract Flutter version from pubspec.yaml     # Extract the Flutter version from pubspec.yaml
-        id: flutter-version                                 # Set the extracted version as an output
+      - name: Extract Flutter version from pubspec.yaml
+        id: flutter-version
         run: |
-          FLUTTER_VERSION=$(grep "flutter:" pubspec.yaml | awk '{print $2}')  
-          echo "::set-output name=version::$FLUTTER_VERSION"
+          FLUTTER_VERSION=$(grep "flutter:" pubspec.yaml | awk '{print $2}')  # Extract the Flutter version from pubspec.yaml
+          echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> $GITHUB_ENV  # Save the extracted version to the environment file
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:        
-          channel: stable                                                   # Use the stable Flutter channel
-          flutter-version: "${{ steps.flutter-version.outputs.version }}"   # Use the extracted Flutter version
+          channel: stable  # Use the stable Flutter channel
+          flutter-version: "${{ env.FLUTTER_VERSION }}"  # Use the extracted Flutter version
 
       - name: Enable Flutter web
-        run: flutter config --enable-web    # Enable Flutter web support
+        run: flutter config --enable-web  # Enable Flutter web support
 
       - name: Get repository name
         id: repo-name
-        run: echo "::set-output name=name::${GITHUB_REPOSITORY##*/}"    # Extract and set the repository name
+        run: echo "REPO_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV  
+        # Extract and save the repository name to the environment file
 
       - name: Install dependencies
-        run: flutter pub get        # Install Flutter dependencies
+        run: flutter pub get  # Install Flutter dependencies
 
       - name: Build Flutter Web
-        run: flutter build web --release --base-href="/${{ steps.repo-name.outputs.name }}/"    # Build the Flutter web app with the correct base href
+        run: flutter build web --release --base-href="/${{ env.REPO_NAME }}/"  # Build the Flutter web app with the correct base href
 
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}     # Use the GitHub token for authentication
-          publish_dir: build/web                        # Specify the directory to publish
-          publish_branch: gh-pages                      # Deploy to the gh-pages branch
-          force_orphan: true                            # Create a new orphan branch for deployment
+          github_token: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
+          publish_dir: build/web  # Specify the directory to publish
+          publish_branch: gh-pages  # Deploy to the gh-pages branch
+          force_orphan: true  # Create a new orphan branch for deployment
